@@ -15,6 +15,8 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/scottyla19/nba-tweepy",
     packages=setuptools.find_packages(),
+    test_suite='nose.collector',
+    tests_require=['nose'],
     install_requires=[
           'tweepy',
           'pandas'
