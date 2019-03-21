@@ -1,13 +1,18 @@
 import tweepy
 import pandas as pd
 import requests
+import os, sys
+
+
 
 class NBA:
    def __init__(self, consumer_key, consumer_secret, access_token, access_token_secret):
+      print(os.path.dirname(__file__))
+
       self.auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
       self.auth.set_access_token(access_token, access_token_secret)
       self.api = tweepy.API(self.auth)
-      self.players = pd.read_csv('data/player-list.csv')
+      self.players = pd.read_csv(os.path.join(os.path.dirname(__file__),'data/player-list.csv'))
 
 
    @property
