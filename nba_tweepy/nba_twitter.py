@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import os, sys
 
+player_list_path = os.path.join(os.path.dirname(__file__),'data/player-list.csv')
 
 
 class NBA:
@@ -12,7 +13,7 @@ class NBA:
       self.auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
       self.auth.set_access_token(access_token, access_token_secret)
       self.api = tweepy.API(self.auth)
-      self.players = pd.read_csv(os.path.join(os.path.dirname(__file__),'data/player-list.csv'))
+      self.players = pd.read_csv(player_list_path)
 
 
    @property
@@ -55,33 +56,32 @@ class NBA:
       
       return df
 
-   @staticmethod
-   def update_player_list (season='2018-19'):
-      # url = 'https://stats.nba.com/stats/commonallplayers/?LeagueID=00&Season={}&IsOnlyCurrentSeason=1'.format(season)
-      # headers = {'host': 'stats.nba.com',
-      #          'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
-      #          'cache-control': 'no-cache',
-      #          'pragma': 'no-cache',
-      #          'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-      #             'accept-encoding': 'gzip, deflate',
-      #          'accept-language': 'en-US,en;q=0.9',
-      #          'connection': 'keep-alive',
-      #          'upgrade-insecure-requests': '1'}
+   def update_player_list (self, season='2018-19'):
+      url = 'https://stats.nba.com/stats/commonallplayers/?LeagueID=00&Season={}&IsOnlyCurrentSeason=1'.format(season)
+      headers = {'host': 'stats.nba.com',
+               'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36',
+               'cache-control': 'no-cache',
+               'pragma': 'no-cache',
+               'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+                  'accept-encoding': 'gzip, deflate',
+               'accept-language': 'en-US,en;q=0.9',
+               'connection': 'keep-alive',
+               'upgrade-insecure-requests': '1'}
 
-      # r = requests.get(url,  headers=headers)
-      # jsn = r.json()
+      r = requests.get(url,  headers=headers)
+      jsn = r.json()
 
-      # rjson = jsn['resultSets'][0]
-      # headers= rjson['headers']
-      # rowSet = rjson['rowSet']
-      # rows = rowSet[1:]
+      rjson = jsn['resultSets'][0]
+      headers= rjson['headers']
+      rowSet = rjson['rowSet']
+      rows = rowSet[1:]
 
-      # players = pd.DataFrame(rows, columns=headers)
-      # # players.dropna(axis=0,how='all',inplace=True)
-      # players['SCREEN_NAME'] = players.DISPLAY_FIRST_LAST.apply(_get_player_handle )
-      # players.to_csv('data/player-list.csv')
+      players = pd.DataFrame(rows, columns=headers)
+      # players.dropna(axis=0,how='all',inplace=True)
+      players['SCREEN_NAME'] = players.DISPLAY_FIRST_LAST.apply(self._get_player_handle )
+      players.to_csv(player_list_path)
       
-      return 'Updating player list...'
+      # return 'Updating player list...'
     #use code from notebook that his stats.nba.com endpoint for players
     #overwrite and update current csv
 

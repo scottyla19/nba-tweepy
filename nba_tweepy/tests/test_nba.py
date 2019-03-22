@@ -16,8 +16,8 @@ class TestNba(TestCase):
 
     def test_update_player_list(self):
         # player_csv_modified_date = os.path.getmtime(os.path.join(os.path.dirname(os.path.dirname(__file__),'data/player-list.csv')))
-        nt.NBA.update_player_list()
-        player_list_mod_date = dt.date.fromtimestamp(os.path.getmtime('data/player-list.csv'))
-        today = dt.datetime.today()
-        self.assertEqual(player_list_mod_date, today)
-        pass
+        nba.update_player_list()
+        player_list_mod_date = dt.datetime.fromtimestamp(os.path.getmtime(os.path.join(os.path.dirname(os.path.dirname(__file__)),'data/player-list.csv')))
+        today = dt.datetime.now()
+        self.assertTrue((today-player_list_mod_date).total_seconds() < 1)
+        
