@@ -16,12 +16,12 @@ class NBA:
       self.players = pd.read_csv(player_list_path)
 
 
-   @property
-   def get_player_tweets(self, player):
+   
+   def get_player_tweets(self, player_screen_name, min_date = None, max_date = None):
       all_tweets = []
 
       #make initial request for most recent tweets (200 is the maximum allowed count)
-      new_tweets = self.api.user_timeline(screen_name = player,count=200)
+      new_tweets = self.api.user_timeline(screen_name = player_screen_name,count=200)
 
       #save most recent tweets
       all_tweets.extend(new_tweets)
@@ -34,7 +34,7 @@ class NBA:
    #         print ("getting tweets before {}".format(oldest))
 
          #all subsiquent requests use the max_id param to prevent duplicates
-         new_tweets = self.api.user_timeline(screen_name = player,count=200,max_id=oldest)
+         new_tweets = self.api.user_timeline(screen_name = player_screen_name,count=200,max_id=oldest)
 
          #save most recent tweets
          all_tweets.extend(new_tweets)
@@ -42,18 +42,16 @@ class NBA:
          #update the id of the oldest tweet less one
          oldest = all_tweets[-1].id - 1
          
-   #         print ("...{} tweets downloaded so far".format(len(all_tweets)))
-      #transform the tweepy tweets into a 2D array that will populate the csv	
-      outtweets = [[player, tweet.id_str, tweet.created_at, 
+   
+      outtweets = [[player_screen_name, tweet.id_str, tweet.created_at, 
                      tweet.text, tweet.created_at.date(), tweet.created_at.time()] for tweet in all_tweets]
-   #     #write the csv	
-   #     with open('%s_tweets.csv' % screen_name, 'wb') as f:
-   #         writer = csv.writer(f)
-   #         writer.writerow(["id","created_at","text"])
-   #         writer.writerows(outtweets)
+  
       df = pd.DataFrame(data=outtweets, columns=['SCREEN_NAME','TWEET_ID','TWEET_CREATE_TIMESTAMP',
                                                 'TWEET_TEXT', 'TWEET_CREATE_DATE', 'TWEET_CREATE_TIME'])
-      
+      if min_date:
+         df = df[df.TWEET_CREATE_DATE >= min_date]
+      if max_date:
+         df = df[df.TWEET_CREATE_DATE <= max_date]
       return df
 
    def update_player_list (self, season='2018-19'):
@@ -77,13 +75,10 @@ class NBA:
       rows = rowSet[1:]
 
       players = pd.DataFrame(rows, columns=headers)
-      # players.dropna(axis=0,how='all',inplace=True)
+
       players['SCREEN_NAME'] = players.DISPLAY_FIRST_LAST.apply(self._get_player_handle )
       players.to_csv(player_list_path)
       
-      # return 'Updating player list...'
-    #use code from notebook that his stats.nba.com endpoint for players
-    #overwrite and update current csv
 
    def _get_player_handle(self, name):
       resp = ''
