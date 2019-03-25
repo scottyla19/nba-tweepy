@@ -6,11 +6,13 @@ import datetime as dt
 
 import nba_tweepy as nt
 import credentials as creds
-
+import pandas as pd
+import warnings
 
 class TestNba(TestCase):
     def setUp(self):
         self.nba = nt.NBA(creds.consumer_key, creds.consumer_secret, creds.access_key, creds.access_secret)
+        warnings.simplefilter('ignore', category=ResourceWarning)
 
     def test_is_auth(self):
         self.assertEqual(self.nba.api.me().screen_name, creds.myScreenName)
@@ -27,25 +29,36 @@ class TestNba(TestCase):
     #     pass
 
     def test_get_all_player_tweets_returns_df(self):
-        test_df = self.nba.get_player_tweets( self.nba.players.SCREEN_NAME[0])
+        test_df = self.nba.get_all_tweets( self.nba.players.SCREEN_NAME[0])
         self.assertTrue(len(test_df.index) > 0)
 
     def test_get_all_player_tweets_min_no_max(self):
-        test_df = self.nba.get_player_tweets( self.nba.players.SCREEN_NAME[0], min_date = '03-01-2019')
-        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , dt.datetime.strptime('03-01-2019', '%m-%d-%Y').date() )
+       
+        test_df = self.nba.get_all_tweets( self.nba.players.SCREEN_NAME[0], min_date =  '03-01-2019')
+        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , pd.Timestamp(dt.datetime.strptime('03-01-2019', "%m-%d-%Y").date()) )
 
     def test_get_all_player_tweets_max_no_min(self):
-        test_df = self.nba.get_player_tweets( self.nba.players.SCREEN_NAME[0], max_date ='03-01-2019')
-        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , dt.datetime.strptime('03-01-2019', '%m-%d-%Y').date() )
+        test_df = self.nba.get_all_tweets( self.nba.players.SCREEN_NAME[0], max_date ='03-01-2019')
+        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , pd.Timestamp(dt.datetime.strptime('03-01-2019', "%m-%d-%Y").date()))
 
     def test_get_all_player_tweets_date_range(self):
-        test_df = self.nba.get_player_tweets( self.nba.players.SCREEN_NAME[0], min_date = '03-01-2019',max_date = '03-18-2019')
-        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , dt.datetime.strptime('03-01-2019', '%m-%d-%Y').date() )
-        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , dt.datetime.strptime('03-18-2019', '%m-%d-%Y').date() )
+        test_df = self.nba.get_all_tweets( self.nba.players.SCREEN_NAME[0], min_date = '03-01-2019',max_date = '03-18-2019')
+        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , pd.Timestamp(dt.datetime.strptime('03-01-2019', "%m-%d-%Y").date()) )
+        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , pd.Timestamp(dt.datetime.strptime('03-18-2019', "%m-%d-%Y").date()))
 
     def test_get_all_player_tweets_single_date(self):
-        test_df = self.nba.get_player_tweets( self.nba.players.SCREEN_NAME[0], min_date = '03-01-2019',max_date = '03-01-2019')
-        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , dt.datetime.strptime('03-01-2019', '%m-%d-%Y').date() )
-        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , dt.datetime.strptime('03-01-2019', '%m-%d-%Y').date() )
+        test_df = self.nba.get_all_tweets( self.nba.players.SCREEN_NAME[0], min_date = '03-01-2019',max_date = '03-01-2019')
+        self.assertEqual(test_df.TWEET_CREATE_DATE.min() , pd.Timestamp(dt.datetime.strptime('03-01-2019', "%m-%d-%Y").date())) 
+        self.assertEqual(test_df.TWEET_CREATE_DATE.max() , pd.Timestamp(dt.datetime.strptime('03-01-2019', "%m-%d-%Y").date()))
     
+    def test_get_team_tweets_no_players(self):
+        team_tweets = self.nba.get_team_tweets('spurs', include_players = False)
+        self.assertTrue(team_tweets.SCREEN_NAME.nunique() == 1)
+        self.assertTrue(team_tweets.SCREEN_NAME[0]== 'spurs')
 
+    def test_get_team_tweets_include_players(self):
+        team_tweets = self.nba.get_team_tweets('Mavericks', include_players = True)
+        df = pd.merge(team_tweets, self.nba.players, on= 'SCREEN_NAME')
+        self.assertTrue(team_tweets.SCREEN_NAME.nunique() > 1)
+        self.assertTrue(df.TEAM_NAME.nunique() == 1)
+        self.assertTrue(df.TEAM_NAME[0] == 'Mavericks')
