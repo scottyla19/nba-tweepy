@@ -149,3 +149,20 @@ class NBA:
                team_tweets = pd.concat([team_tweets, df])
 
       return team_tweets
+
+   def get_player_handle(self, player, team):
+
+      if ' ' in player:
+         firstName =  self.player.split(' ', 1)[0]
+         lastName =  self.player.split(' ', 1)[1]
+         df = self.players[(self.players.DISPLAY_FIRST_NAME == firstName) & (self.players.DISPLAY_LAST_NAME == lastName)]
+         df.reset_index(inplace=True)
+         return df.SCREEN_NAME[0]
+      else:
+         df = self.players[(self.players.DISPLAY_FIRST_NAME == player) ]
+         df.reset_index(inplace=True)
+         return df.SCREEN_NAME[0]
+
+
+     
+      
