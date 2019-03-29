@@ -150,18 +150,22 @@ class NBA:
 
       return team_tweets
 
-   def get_player_handle(self, player, team):
-
-      if ' ' in player:
-         firstName =  self.player.split(' ', 1)[0]
-         lastName =  self.player.split(' ', 1)[1]
-         df = self.players[(self.players.DISPLAY_FIRST_NAME == firstName) & (self.players.DISPLAY_LAST_NAME == lastName)]
-         df.reset_index(inplace=True)
-         return df.SCREEN_NAME[0]
+   def get_player_handle(self, player, team = None):
+      df = self.players[(self.players.DISPLAY_FIRST_LAST == player) ]
+      df.reset_index(inplace=True)
+      if len(df.index) == 0:
+         return 'Unfortunately, {} is not in the NBA.'.format(player)
       else:
-         df = self.players[(self.players.DISPLAY_FIRST_NAME == player) ]
-         df.reset_index(inplace=True)
          return df.SCREEN_NAME[0]
+
+   def get_woj_bombs(self, min_date=None, max_date= None):
+      df = self.get_all_tweets('wojespn', min_date = min_date, max_date = max_date)
+      return df
+
+   def get_shams_scoops(self, min_date=None, max_date= None):
+      df = self.get_all_tweets('ShamsCharania', min_date = min_date, max_date = max_date)
+      return df
+
 
 
      
